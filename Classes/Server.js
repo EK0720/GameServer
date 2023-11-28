@@ -100,10 +100,12 @@ module.exports = class Server {
 
     }
    
-    onJoinLobby(connection = Connection, lobbyID) {
+    onJoinLobby(connection = Connection, data) {
         let server = this;
         let lobbyFound = false;
-
+        let lobbyId = data.lobbyId;
+        connection.player.characterId = data.characterId;
+        connection.player.username = data.playername;
         let gameLobbies = [];
         for (var id in server.lobbys) {
             if (server.lobbys[id] instanceof GameLobby) {
@@ -112,7 +114,7 @@ module.exports = class Server {
         }
         console.log('Found (' + gameLobbies.length + ') lobbies on the server');
         gameLobbies.forEach(lobby => {
-            if(!lobbyFound&& lobby.id == lobbyID) {
+            if(!lobbyFound&& lobby.id == lobbyId) {
                 let canJoin = lobby.canEnterLobby(connection);
 
                 if(canJoin) {
@@ -122,8 +124,11 @@ module.exports = class Server {
             }
         });
     }
-    onCreateNewLobby(connection = Connection) {
+    onCreateNewLobby(connection = Connection, data) {
         let server = this;
+        console.log(data);
+        connection.player.characterId = data.characterId;
+        connection.player.username = data.playername;
         //Create New Game Lobby
         console.log('Making a new game lobby');
         let gamelobby = new GameLobby(new GameLobbySettings('FFA', 4, 1, levelData1));

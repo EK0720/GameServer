@@ -8,6 +8,8 @@ module.exports = class Player {
         this.lobby = 0;
         this.position = new Vector3();
         this.rotation = new Number (0);
+        this.characterId = 0;
+        this.playerPoint = 0;
     }
     displayerPlayerInformation(){
         let player = this;

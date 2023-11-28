@@ -37,8 +37,8 @@ module.exports = class Connection {
         socket.on('loadLobby', function() {
             server.onLoadLobby(connection);
         });
-        socket.on('createNewLobby', function() {
-            server.onCreateNewLobby(connection);
+        socket.on('createNewLobby', function(Data) {
+            server.onCreateNewLobby(connection, Data);
         });
         socket.on('joinLobby', function(Data) {
             server.onJoinLobby(connection, Data);
@@ -49,10 +49,9 @@ module.exports = class Connection {
         // socket.on('joinGame', function() {
         //     server.onAttemptToJoinGame(connection);
         // });
-
-        socket.on('collisionDestroy', function(data){
-            connection.lobby.OnCollisionDestroy(connection, data);
-        });
+        // socket.on('collisionDestroy', function(data){
+        //     connection.lobby.OnCollisionDestroy(connection, data);
+        // });
         socket.on('updatePosition', function(data){
                     player.position.x = data.position.x;
                     player.position.y = data.position.y;

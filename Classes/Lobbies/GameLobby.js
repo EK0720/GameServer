@@ -10,6 +10,7 @@ module.exports = class GameLobbby extends LobbyBase {
         super();
         this.settings = settings;
         this.lobbyState = new LobbyState();
+        this.playersCompletedRound = [];
         this.endGameLobby = function() {};
     }
 
@@ -73,7 +74,7 @@ module.exports = class GameLobbby extends LobbyBase {
         let lobby = this;
         let socket = connection.socket;
         console.log('We will start the game');
-        lobby.lobbyState.currentState == lobby.lobbyState.GAME;
+        lobby.lobbyState.currentState = lobby.lobbyState.GAME;
         lobby.onSpawnAllPlayersIntoGame();
         let returnData = {
             state: lobby.lobbyState.currentState
@@ -104,6 +105,7 @@ module.exports = class GameLobbby extends LobbyBase {
             });
         }
     }
+
     onLoadIdPlayerInLobby() {
         let lobby = this;
         let connections = lobby.connections;
@@ -112,9 +114,12 @@ module.exports = class GameLobbby extends LobbyBase {
             let socket = connection.socket;
             var returnData = {
                 id: connection.player.id,
+                characterId: connection.player.characterId,
+                playername: connection.player.username
             }
-            socket.emit('loadPlayerId', returnData);
-            socket.broadcast.to(lobby.id).emit('loadPlayerId', returnData);
+            console.log(returnData);
+            socket.emit('loadPlayerInfo', returnData);
+            socket.broadcast.to(lobby.id).emit('loadPlayerInfo', returnData);
         });
     }
 
@@ -137,32 +142,14 @@ module.exports = class GameLobbby extends LobbyBase {
 
         var returnData = {
             id: connection.player.id,
-            position: connection.player.position
+            position: connection.player.position,
+            characterId: connection.player.characterId,
+            playername: connection.player.username
         }
 
         socket.emit('spawn', returnData); //tell myself I have spawned
         socket.broadcast.to(lobby.id).emit('spawn', returnData); // Tell others
-        //fruit
-        const fruits = ["Apple", "Lemon", "Grape", "Orange"];
-
-        const shuffledFruits = [];
-        
-        for (let i = 0; i < 16; i++) {
-          const fruitIndex = Math.floor(Math.random() * 4);
-          shuffledFruits.push(fruits[fruitIndex]);
-        }
-        
-        const requiredFruit = shuffledFruits.slice(0, 1)[0];
-        
-        socket.emit("showFruits", {
-          fruits: shuffledFruits,
-          requiredFruit: requiredFruit,
-        });
-        socket.broadcast.to(lobby.id).emit("showFruits",{
-            fruits: shuffledFruits,
-            requiredFruit: requiredFruit,
-        });
-
+        lobby.playGameFruit(connection);
         //Tell myself about everyone else already in the lobby
         connections.forEach(c => {
             if(c.player.id != connection.player.id) {
@@ -177,6 +164,98 @@ module.exports = class GameLobbby extends LobbyBase {
             }
         });
     }
+    playGameFruit(connection = Connection) {
+        let lobby = this;
+        let socket = connection.socket;
+        const fruits = ["Apple", "Lemon", "Grape", "Orange"];
+        let roundNumber = 1;
+        function sendNextRound() {
+          if (roundNumber > 4) {
+            lobby.lobbyState.currentState = "Lobby";
+            return;
+          }
+          lobby.playersCompletedRound = [];
+          const shuffledFruits = [];
+      
+          for (let i = 0; i < 16; i++) {
+            const fruitIndex = Math.floor(Math.random() * 4);
+            shuffledFruits.push(fruits[fruitIndex]);
+          }
+      
+          const requiredFruit = shuffledFruits[Math.floor(Math.random() * 16)];
+      
+          const data = {
+            round: roundNumber,
+            fruits: shuffledFruits,
+            requiredFruit: requiredFruit,
+          };      
+          // Gửi round hiện tại đến tất cả người chơi
+          socket.emit("showFruits", data);
+          socket.broadcast.to(lobby.id).emit("showFruits", data);
+        }
+        // Khởi động trò chơi bằng việc gửi round đầu tiên
+        sendNextRound();
+      
+        // Xử lý sự kiện từ front end khi người chơi hoàn thành round
+        socket.on("roundCompleted", (data) => {
+          if (lobby.lobbyState.currentState == lobby.lobbyState.GAME) {
+          const point = data.point;
+          lobby.playersCompletedRound.push(connection.player.id);
+          connection.player.playerPoint += point;
+
+          console.log(lobby.playersCompletedRound);
+          if(lobby.playersCompletedRound.length === lobby.connections.length) {
+          // Tính điểm tổng của người chơi
+            // Xếp hạng người chơi dựa trên điểm số
+            const rankings = lobby.connections.sort((a, b) => b.player.playerPoint - a.player.playerPoint).map((connection) =>`${connection.player.username}: ${connection.player.playerPoint}`);
+      
+            const roundResult = {
+              round: roundNumber,
+              points: lobby.connections.reduce((points, connection) => {
+                points[connection.player.username] = connection.player.playerPoint;
+                return points;
+              }, {}),
+              rankings: rankings,
+            };
+      
+            // Gửi kết quả round cho bên front end
+            socket.emit("roundResult", roundResult);
+            socket.broadcast.to(lobby.id).emit("roundResult", roundResult);
+            roundNumber++;
+      
+            // Gửi round tiếp theo sau một khoảng thời gian
+            setTimeout(() => {
+              sendNextRound();
+            }, 100); // Thời gian chờ giữa các round (ví dụ: 2 giây)
+        }
+    }
+        });
+    }
+    // playGameFruit(connection = Connection) {
+    //     //fruit
+    //     let lobby = this;
+    //     let socket = connection.socket;
+    //     const fruits = ["Apple", "Lemon", "Grape", "Orange"];
+
+    //     const shuffledFruits = [];
+        
+    //     for (let i = 0; i < 16; i++) {
+    //       const fruitIndex = Math.floor(Math.random() * 4);
+    //       shuffledFruits.push(fruits[fruitIndex]);
+    //     }
+        
+    //     const requiredFruit = shuffledFruits.slice(0, 1)[0];
+        
+    //     socket.emit("showFruits", {
+    //       fruits: shuffledFruits,
+    //       requiredFruit: requiredFruit,
+    //     });
+    //     socket.broadcast.to(lobby.id).emit("showFruits",{
+    //         fruits: shuffledFruits,
+    //         requiredFruit: requiredFruit,
+    //     });
+    // }
+    
 
     removePlayer(connection = Connection) {
         let lobby = this;
