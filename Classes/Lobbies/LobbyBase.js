@@ -19,7 +19,6 @@ module.exports = class LobbyBase {
         let player = connection.player;
 
         console.log('Player ' + player.displayerPlayerInformation() + ' has entered the lobby (' + lobby.id + ')');
-        console.log('dead');
         lobby.connections.push(connection);
 
         player.lobby = lobby.id;

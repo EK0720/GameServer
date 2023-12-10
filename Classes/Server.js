@@ -1,6 +1,6 @@
 let Connection = require('./Connection')
 let Player = require('./Player')
-let Database = require('./Database')
+let Database = require('../Config/Database')
 
 //Lobbies
 let LobbyBase = require('./Lobbies/LobbyBase')
@@ -89,9 +89,11 @@ module.exports = class Server {
                 gameLobbies.push(server.lobbys[id]);
             }
         }
-        const ids = gameLobbies.map(gameLobby => gameLobby.id);
-        // console.log(ids);
-        connection.socket.emit('loadLobby', {ids: ids});
+        const dataToSend = gameLobbies.map(gameLobby => ({
+            id: gameLobby.id,
+            gameMode: gameLobby.settings.gameMode,
+          }));
+        connection.socket.emit('loadLobby', { data: dataToSend });
         console.log(gameLobbies);
         // console.log(connection.player.displayerPlayerInformation());
         // connection.player.username = "Tuan";
@@ -105,7 +107,6 @@ module.exports = class Server {
         let lobbyFound = false;
         let lobbyId = data.lobbyId;
         connection.player.characterId = data.characterId;
-        connection.player.username = data.playername;
         let gameLobbies = [];
         for (var id in server.lobbys) {
             if (server.lobbys[id] instanceof GameLobby) {
@@ -124,14 +125,81 @@ module.exports = class Server {
             }
         });
     }
+    onUpdateDisplayName(connection = Connection, data) {
+        let server = this;
+        if(data !=null){
+        connection.player.displayName = data;
+        server.database.UpdateDisplayName(connection.player.username, data , results =>{
+            if (results =="Success") {
+                console.log('Display name updated successfully');
+              } else {
+                console.error('Display name update failed: ');
+              }
+        });
+        }
+    }
+    onSendFriendRequest(connection = Connection, data) {
+        let server = this;
+        if(data != null){
+            server.database.sendFriendRequest(connection.player.username, data.username, (results) => {
+                console.log(results.valid + ': ' + results.reason);
+              });
+        }
+    }
+    onCheckFriendRequest(connection = Connection) {
+        let server = this;
+          server.database.checkFriendRequest(connection.player.username, (results) => {
+            console.log(results);
+            connection.socket.emit("checkFriendRequest", results);
+          });
+      }
+    onAcceptFriendRequest(connection = Connection, data) {
+        let server = this;
+        if (data != null) {
+          server.database.acceptFriendRequest(connection.player.username, data.username, (results) => {
+            console.log(results.valid + ': ' + results.reason);
+          });
+        }
+      }
+    onUnFriend(connection = Connection, data) {
+        let server = this;
+        if (data != null) {
+          server.database.unFriend(connection.player.username, data.username, (results) => {
+            console.log(results.valid + ': ' + results.reason);
+          });
+        }
+      }
+    onUpdateUserLeaderboard(connection = Connection, data) {
+        let server = this;
+        if (data != null) {
+          server.database.UpdateUserLeaderboard(connection.player.username, data.gameMode, 1, (results) => {
+            console.log(results.valid + ': ' + results.reason);
+          });
+        }
+    }
+    onShowLeaderboard(connection = Connection, data) {
+        let server = this;
+        if (data != null) {
+          server.database.ShowLeaderboard(5, data.gameMode, (results) => {
+            connection.socket.emit("showLeaderboard", results);
+          });
+        }
+    }
+    onSendMessage(connection = Connection, data) {
+        let server = this;
+        if (data != null) {
+          server.database.addMessage("Tuan1", "user1", "hello", (results) => {
+            console.log(results.valid + ': ' + results.reason);
+          });
+        }
+    }
     onCreateNewLobby(connection = Connection, data) {
         let server = this;
         console.log(data);
         connection.player.characterId = data.characterId;
-        connection.player.username = data.playername;
         //Create New Game Lobby
         console.log('Making a new game lobby');
-        let gamelobby = new GameLobby(new GameLobbySettings('FFA', 4, 1, levelData1));
+        let gamelobby = new GameLobby(new GameLobbySettings(data.gameMode, 4, 1, levelData1));
         gamelobby.endGameLobby = function() {server.closeDownLobby(gamelobby.id)};
         server.lobbys[gamelobby.id] = gamelobby;
         server.onSwitchLobby(connection, gamelobby.id);

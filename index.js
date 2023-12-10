@@ -20,3 +20,19 @@ io.on('connection', function(socket) {
     connection.createEvents();
     connection.socket.emit('register', {'id': connection.player.id});
 });
+
+// Web Manager
+const express = require("express");
+const cors = require("cors");
+const app = express();
+const userRouter = require("./Classes/Api/User.Router");
+
+app.use(express.json());
+
+app.use(cors());
+
+app.use("/api", userRouter);
+
+app.listen(9000, () => {
+  console.log("Server Manager Working");
+});
