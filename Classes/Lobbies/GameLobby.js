@@ -148,13 +148,13 @@ module.exports = class GameLobbby extends LobbyBase {
             characterId: connection.player.characterId,
             playername: connection.player.displayName
         }
-
-        socket.emit('spawn', returnData); //tell myself I have spawned
-        socket.broadcast.to(lobby.id).emit('spawn', returnData); // Tell others
         if (lobby.settings.gameMode =="FruitMemory") {
             lobby.playGameFruit(connection);
         }
         else  lobby.playTagGame(connection);
+        socket.emit('spawn', returnData); //tell myself I have spawned
+        socket.broadcast.to(lobby.id).emit('spawn', returnData); // Tell others
+   
         //Tell myself about everyone else already in the lobby
         connections.forEach(c => {
             if(c.player.id != connection.player.id) {
@@ -242,6 +242,7 @@ module.exports = class GameLobbby extends LobbyBase {
     playTagGame(connection = Connection) {
         let lobby = this;
         let socket = connection.socket;
+        let connections = lobby.connections;
         lobby.playersCompletedRound.push(connection.player.id);
         if(lobby.playersCompletedRound.length == lobby.connections.length) {
         let chaserPlayer = lobby.connections[Math.floor(Math.random() * lobby.connections.length)];
@@ -252,11 +253,19 @@ module.exports = class GameLobbby extends LobbyBase {
         socket.on("isEliminated", (data) => {
           if (lobby.lobbyState.currentState == lobby.lobbyState.GAME) {
             // lobby.playersCompletedRound.push(connection.player.id);
-            if(data.isEliminated) {
-                lobby.playerEliminated.push(connection.player.id);
-                connection.player.isEliminated = data.isEliminated;
+            // if(data.isEliminated) {
+            //     lobby.playerEliminated.push(connection.player.id);
+            //     connection.player.isEliminated = data.isEliminated;
+            // }
+            if(data.id!=null) {
+                lobby.playerEliminated.push(data.id);
+                connections.forEach(c => {
+                    if(c.player.id == data.id) {
+                        c.player.isEliminated = true;
+                    }
+                });
             }
-      
+            
             console.log(lobby.playerEliminated);
             // if (lobby.playersCompletedRound.length === lobby.connections.length) {
               const rankings = lobby.connections.sort((a, b) =>

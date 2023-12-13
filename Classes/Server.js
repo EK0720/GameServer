@@ -193,6 +193,29 @@ module.exports = class Server {
           });
         }
     }
+    onLobbyInfo (connection = Connection) {
+        let server = this;
+        let lobbies = [];
+        
+        for (const id in server.lobbys) {
+          const lobby = server.lobbys[id];
+          
+          if (lobby instanceof GameLobby) {
+            const lobbyInfo = {
+              lobbyId: lobby.id,
+              connectedPlayers: lobby.connections.length,
+              gameMode: lobby.settings.gameMode,
+              maxPlayers: lobby.settings.maxPlayers,
+              minPlayers: lobby.settings.minPlayers,
+              currentState: lobby.lobbyState.currentState,
+            };
+            lobbies.push(lobbyInfo);
+          }
+        }
+        
+        // Gửi object chứa thông tin về các lobby
+        connection.socket.emit('lobbyInfo', { lobbies });
+      }
     onCreateNewLobby(connection = Connection, data) {
         let server = this;
         console.log(data);

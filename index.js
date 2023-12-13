@@ -21,6 +21,8 @@ io.on('connection', function(socket) {
     connection.socket.emit('register', {'id': connection.player.id});
 });
 
+
+
 // Web Manager
 const express = require("express");
 const cors = require("cors");

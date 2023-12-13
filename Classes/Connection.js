@@ -97,6 +97,12 @@ module.exports = class Connection {
         socket.on("sendMessage", function(data) {
             server.onSendMessage(connection, data);
         });
+        socket.on("lobbyInfo", function() {
+            server.onLobbyInfo(connection);
+        });
+        socket.on("getNumberConnection", function() {
+            socket.emit("getNumberConnection",Object.keys(server.connections).length );
+        });
         socket.on('updatePosition', function(data){
                     player.position.x = data.position.x;
                     player.position.y = data.position.y;
