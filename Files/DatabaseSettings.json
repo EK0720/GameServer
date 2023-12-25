@@ -1,6 +1,6 @@
 {
-    "Host": "localhost",
-    "User": "postgres",
-    "Password": "12345678",
-    "Database": "gamevrdatabase"
+    "Host": "user-prod-us-east-2-1.cluster-cfi5vnucvv3w.us-east-2.rds.amazonaws.com",
+    "User": "gamemanager2023-main-db-09a3da559b965a732",
+    "Password": "hswxdh4Py9m5QayBEr1Fk8c51eJN9V",
+    "Database": "gamemanager2023-main-db-09a3da559b965a732"
 }
