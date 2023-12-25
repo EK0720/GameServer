@@ -1,6 +1,6 @@
 {
     "Host": "localhost",
-    "User": "root",
-    "Password": "",
+    "User": "postgres",
+    "Password": "12345678",
     "Database": "gamevrdatabase"
 }

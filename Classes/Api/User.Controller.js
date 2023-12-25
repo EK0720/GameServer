@@ -20,15 +20,37 @@ const getSampleDataByUsername = (req, res) => {
 
 // Tạo tài khoản mới
 const createAccount = (req, res) => {
-  const { username, password } = req.body;
-  db.CreateAccount(username, password, result => {
+  const { username, password, email } = req.body;
+  db.CreateAccount(username, password, email, result => {
     res.json(result);
   });
 };
 
 // Đăng nhập
+// const signIn = (req, res) => {
+//   const { username, password } = req.body;
+//   db.SignIn(username, password, result => {
+//     if (result.reason == "Success.") {
+//       const jsontoken = sign({ username }, "NguyenHuuTuan", {
+//         expiresIn: "1h"
+//       });
+//       res.json({
+//         reason: "Success.",
+//         message: "Login successfully",
+//         token: jsontoken
+//       });
+//     } else res.json(result);
+//   });
+// };
 const signIn = (req, res) => {
   const { username, password } = req.body;
+  if (username !== 'Adminstrator') {
+    res.json({
+      reason: "Failed.",
+      message: "Only the Adminstrator account can log in."
+    });
+    return;
+  }
   db.SignIn(username, password, result => {
     if (result.reason == "Success.") {
       const jsontoken = sign({ username }, "NguyenHuuTuan", {
@@ -42,6 +64,7 @@ const signIn = (req, res) => {
     } else res.json(result);
   });
 };
+
 
 // Xóa người dùng
 const deleteUser = (req, res) => {

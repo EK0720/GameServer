@@ -92,6 +92,7 @@ module.exports = class Server {
         const dataToSend = gameLobbies.map(gameLobby => ({
             id: gameLobby.id,
             gameMode: gameLobby.settings.gameMode,
+            currentState: gameLobby.lobbyState.currentState
           }));
         connection.socket.emit('loadLobby', { data: dataToSend });
         console.log(gameLobbies);
@@ -171,7 +172,7 @@ module.exports = class Server {
       }
     onUpdateUserLeaderboard(connection = Connection, data) {
         let server = this;
-        if (data != null) {
+        if (data.gameMode != null) {
           server.database.UpdateUserLeaderboard(connection.player.username, data.gameMode, 1, (results) => {
             console.log(results.valid + ': ' + results.reason);
           });
@@ -188,10 +189,27 @@ module.exports = class Server {
     onSendMessage(connection = Connection, data) {
         let server = this;
         if (data != null) {
-          server.database.addMessage("Tuan1", "user1", "hello", (results) => {
+          server.database.addMessage(connection.player.username, data.username, data.message, (results) => {
             console.log(results.valid + ': ' + results.reason);
           });
         }
+    }
+    onGetMessage(connection = Connection, data) {
+      let server = this;
+      if (data != null) {
+        server.database.getMessagesByUsername(connection.player.username, data.username, (results) => {
+          connection.socket.emit("getMessage", results);
+        });
+      }
+    }
+    onGetUserProfile(connection = Connection, data) {
+      let server = this;
+      if (data != null) {
+        server.database.GetUserProfile(data.username, (results) => {
+          connection.socket.emit("getUserProfile", results);
+          console.log(results);
+        });
+      }
     }
     onLobbyInfo (connection = Connection) {
         let server = this;
@@ -199,7 +217,6 @@ module.exports = class Server {
         
         for (const id in server.lobbys) {
           const lobby = server.lobbys[id];
-          
           if (lobby instanceof GameLobby) {
             const lobbyInfo = {
               lobbyId: lobby.id,
@@ -222,7 +239,7 @@ module.exports = class Server {
         connection.player.characterId = data.characterId;
         //Create New Game Lobby
         console.log('Making a new game lobby');
-        let gamelobby = new GameLobby(new GameLobbySettings(data.gameMode, 4, 1, levelData1));
+        let gamelobby = new GameLobby(new GameLobbySettings(data.gameMode, 10, 2, levelData1));
         gamelobby.endGameLobby = function() {server.closeDownLobby(gamelobby.id)};
         server.lobbys[gamelobby.id] = gamelobby;
         server.onSwitchLobby(connection, gamelobby.id);

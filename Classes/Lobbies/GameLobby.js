@@ -175,8 +175,11 @@ module.exports = class GameLobbby extends LobbyBase {
         const fruits = ["Apple", "Lemon", "Grape", "Orange"];
         let roundNumber = 1;
         function sendNextRound() {
-          if (roundNumber > 5) {
-            lobby.lobbyState.currentState = "Lobby";
+          if (roundNumber > 5 || lobby.connections.filter(connection => connection.player.isEliminated === false).length === 1 || lobby.connections.filter(connection => connection.player.isEliminated === false).length === 0) {
+            lobby.lobbyState.currentState = lobby.lobbyState.ENDGAME;
+            socket.emit("endGame");
+            socket.broadcast.to(lobby.id).emit("endGame");
+            lobby.resetPlayer(connection);
             return;
           }
           lobby.playersCompletedRound = [];
@@ -208,7 +211,6 @@ module.exports = class GameLobbby extends LobbyBase {
           lobby.playersCompletedRound.push(connection.player.id);
           connection.player.playerPoint += point;
           connection.player.isEliminated = data.isEliminated;
-
           console.log(lobby.playersCompletedRound);
           if(lobby.playersCompletedRound.length === lobby.connections.length) {
           // Tính điểm tổng của người chơi
@@ -245,10 +247,10 @@ module.exports = class GameLobbby extends LobbyBase {
         let connections = lobby.connections;
         lobby.playersCompletedRound.push(connection.player.id);
         if(lobby.playersCompletedRound.length == lobby.connections.length) {
-        let chaserPlayer = lobby.connections[Math.floor(Math.random() * lobby.connections.length)];
-        socket.emit("getChaserPlayer",  chaserPlayer.player.id);
-        socket.broadcast.to(lobby.id).emit("getChaserPlayer",  chaserPlayer.player.id);
-        console.log( chaserPlayer.player.id + "ID đầu");
+            let chaserPlayer = lobby.connections[Math.floor(Math.random() * lobby.connections.length)];
+            socket.emit("getChaserPlayer",  chaserPlayer.player.id);
+            socket.broadcast.to(lobby.id).emit("getChaserPlayer",  chaserPlayer.player.id);
+            console.log( chaserPlayer.player.id + "ID đầu");
         }
         socket.on("isEliminated", (data) => {
           if (lobby.lobbyState.currentState == lobby.lobbyState.GAME) {
@@ -265,6 +267,8 @@ module.exports = class GameLobbby extends LobbyBase {
                     }
                 });
             }
+    
+
             
             console.log(lobby.playerEliminated);
             // if (lobby.playersCompletedRound.length === lobby.connections.length) {
@@ -291,6 +295,13 @@ module.exports = class GameLobbby extends LobbyBase {
               socket.broadcast.to(lobby.id).emit("roundResult", roundResult);
             //   lobby.playersCompletedRound = [];
             // }
+            if(lobby.connections.filter(connection => connection.player.isEliminated === false).length === 1){
+                lobby.lobbyState.currentState = lobby.lobbyState.ENDGAME;
+                socket.emit("endGame");
+                socket.broadcast.to(lobby.id).emit("endGame");
+                lobby.resetPlayer();
+                return;
+            }
           }
         });
       }
@@ -300,6 +311,17 @@ module.exports = class GameLobbby extends LobbyBase {
         connection.socket.broadcast.to(lobby.id).emit('disconnected', {
             id: connection.player.id
         });
+    }
+    resetPlayer() {
+        let lobby = this;
+        let connections = lobby.connections;
+
+        connections.forEach(connection => {
+            connection.player.playerPoint = 0;
+            connection.player.isEliminated = false;
+        });
+        lobby.playerEliminated = [];
+        lobby.playersCompletedRound = [];
     }
 
     getRandomSpawn() {

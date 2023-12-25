@@ -5,12 +5,11 @@ module.exports = class Connection {
         this.server;
         this.lobby;
     }
-    createEvents() {
+    registerLoggedInEvents() {
         let connection = this;
         let socket = connection.socket;
         let server = connection.server;
         let player = connection.player;
-
         socket.on('disconnect', function() {
             server.onDisconnected(connection);
             server.database.SwitchUserOnlineStatus(connection.player.username, 0, results =>
@@ -50,9 +49,25 @@ module.exports = class Connection {
                         console.log(results.valid + ': ' + results.reason);
                     });
                     socket.emit('signIn');
+                    connection.createEvents();
                 }
             });
         });
+        socket.on("lobbyInfo", function() {
+            server.onLobbyInfo(connection);
+        });
+        socket.on("getNumberConnection", function() {
+            socket.emit("getNumberConnection",Object.keys(server.connections).length );
+        });
+    }
+
+    createEvents() {
+        let connection = this;
+        let socket = connection.socket;
+        let server = connection.server;
+        let player = connection.player;
+
+       
         socket.on('updateDisplayName', function(Data) {
             server.onUpdateDisplayName(connection, Data);
         });
@@ -97,12 +112,13 @@ module.exports = class Connection {
         socket.on("sendMessage", function(data) {
             server.onSendMessage(connection, data);
         });
-        socket.on("lobbyInfo", function() {
-            server.onLobbyInfo(connection);
+        socket.on("getMessage", function(data) {
+            server.onGetMessage(connection, data);
         });
-        socket.on("getNumberConnection", function() {
-            socket.emit("getNumberConnection",Object.keys(server.connections).length );
+        socket.on("getUserProfile", function(data) {
+            server.onGetUserProfile(connection, data);
         });
+ 
         socket.on('updatePosition', function(data){
                     player.position.x = data.position.x;
                     player.position.y = data.position.y;
@@ -110,7 +126,9 @@ module.exports = class Connection {
                     socket.broadcast.to(connection.lobby.id).emit('updatePosition', player);
           
         });
-     
+        socket.on('loadPlayerInfo', function(){
+            connection.lobby.onLoadIdPlayerInLobby();
+        });
         socket.on('updateRotation', function(data){
             player.rotation = data.rotation;
             socket.broadcast.to(connection.lobby.id).emit('updateRotation', player);
