@@ -7,7 +7,7 @@ function sendPasswordByEmail(email, username, newpassword) {
     service: "Gmail",
     auth: {
       user: "bedtimestory9199@gmail.com",
-      pass: "abvxz",
+      pass: "dncm djhs lxsf ilam",
     },
   });
   let otp = newpassword;
