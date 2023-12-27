@@ -13,9 +13,13 @@ Dự án này là một server game được xây dựng bằng Node.js và Sock
 
 ```bash
 git clone https://github.com/username/projectname.git
+
 2. Di chuyển vào thư mục dự án:
+
 cd projectname
+
 3. Cài đặt các gói phụ thuộc:
+
 npm install
 hoặc
 yarn install
