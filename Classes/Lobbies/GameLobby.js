@@ -20,9 +20,6 @@ module.exports = class GameLobbby extends LobbyBase {
 
         let lobby = this;
         let serverItems = lobby.serverItems; 
-        // lobby.updateDeadPlayers();
-
-        //Clos lobby because no one is here
         if (lobby.connections.length == 0) {
             lobby.endGameLobby();
         }
@@ -46,31 +43,8 @@ module.exports = class GameLobbby extends LobbyBase {
 
         super.onEnterLobby(connection);
         lobby.onLoadIdPlayerInLobby();
-        //lobby.addPlayer(connection);
-
-            // if (lobby.connections.length == lobby.settings.maxPlayers &&   lobby.lobbyState.currentState == lobby.lobbyState.GAME) {
-            //     console.log('We have enough players we can start the game');
-            //     lobby.onSpawnAllPlayersIntoGame();
-            //     //lobby.onSpawnAIIntoGame();
-            //     let returnData = {
-            //         state: lobby.lobbyState.currentState
-            //     };
-            // socket.emit('loadGame');
-            // socket.emit('lobbyUpdate', returnData);
-            // socket.broadcast.to(lobby.id).emit('lobbyUpdate', returnData);
-            // }
-
-        // let returnData = {
-        //     state: lobby.lobbyState.currentState
-        // };
-
-        // socket.emit('loadGame');
-        // socket.emit('lobbyUpdate', returnData);
-        // socket.broadcast.to(lobby.id).emit('lobbyUpdate', returnData);
-
-        //Handle spawning any server spawned objects here
-        //Example: loot, perhaps flying bullets etc
     }
+
     onStartLobby(connection = Connection) {
         let lobby = this;
         let socket = connection.socket;
@@ -88,16 +62,8 @@ module.exports = class GameLobbby extends LobbyBase {
     }
     onLeaveLobby(connection = Connection) {
         let lobby = this;
-
         super.onLeaveLobby(connection);
-
         lobby.removePlayer(connection);
-
-        //Handle unspawning any server spawned objects here
-        //Example: loot, perhaps flying bullets etc
-        // lobby.onUnspawnAllAIInGame(connection);
-
-        //Determine if we have enough players to continue the game or not
         if (lobby.connections.length < lobby.settings.minPlayers) {
             lobby.connections.forEach(connection => {
                 if (connection != undefined) {
@@ -152,10 +118,9 @@ module.exports = class GameLobbby extends LobbyBase {
             lobby.playGameFruit(connection);
         }
         else  lobby.playTagGame(connection);
-        socket.emit('spawn', returnData); //tell myself I have spawned
-        socket.broadcast.to(lobby.id).emit('spawn', returnData); // Tell others
+        socket.emit('spawn', returnData);
+        socket.broadcast.to(lobby.id).emit('spawn', returnData); 
    
-        //Tell myself about everyone else already in the lobby
         connections.forEach(c => {
             if(c.player.id != connection.player.id) {
                 socket.emit('spawn', {
@@ -283,10 +248,9 @@ module.exports = class GameLobbby extends LobbyBase {
                 const survivePlayer = lobby.connections.filter(connection => !lobby.playerEliminated.some(eliminatedPlayer => eliminatedPlayer === connection.player.id));
                 if(survivePlayer.length > 0){
                 const newChaserPlayer = survivePlayer[Math.floor(Math.random() * survivePlayer.length)];
-                // console.log(survivePlayer);
-                // console.log("Tôi dai dột" + newChaserPlayer);
+       
                 const newChaserPlayerid = newChaserPlayer.player.id;
-                console.log("Tôi dai dột" + newChaserPlayerid);
+                console.log("Người đuổi mới" + newChaserPlayerid);
                 socket.emit("getChaserPlayer", newChaserPlayerid);
                 socket.broadcast.to(lobby.id).emit("getChaserPlayer", newChaserPlayerid);
                 }
@@ -334,8 +298,6 @@ module.exports = class GameLobbby extends LobbyBase {
             z: lobby.settings.levelData.freeForAllSpawn[index].position.z,
         }
     }
-
-    //Includes Min, Exlcudes Max
     getRndInteger(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
     }

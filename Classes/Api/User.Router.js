@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { checkToken } = require("../Auth/AuthenticateToken");
-const userController = require('./user.controller');
-
+const userController = require("../Api/User.Controller")
+// Ai dùng phần này nên chia ra ResfulAPI: users, leaderboard, message... theo controller router
 // Định nghĩa các tuyến đường cho nguồn dữ liệu mẫu
 router.get('/user', checkToken, userController.getSampleData);
 router.get('/:username', checkToken, userController.getSampleDataByUsername);

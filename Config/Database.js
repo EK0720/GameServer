@@ -15,6 +15,8 @@ module.exports = class Database {
             database: this.currentSettings.Database
         });
     }
+// Ai dùng phần này nên chia ra ResfulAPI: users, leaderboard, message... theo controller router
+// Đây sẽ là service
 
     Connect(callback) {
         let pool = this.pool;
@@ -175,7 +177,6 @@ module.exports = class Database {
                             reason: "Success."
                         });
                     } else {
-                        //In reality you should never return this or youll get botted hahahah
                         callback({
                             valid: false,
                             reason: "Password does not match."

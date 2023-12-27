@@ -1,45 +1,4 @@
 {
-    "teamOneSpawn": [
-        {
-            "radius": 0.5,
-            "position": {
-                "x": 7.0,
-                "z": 0.0
-            }
-        }
-    ],
-    "teamTwoSpawn": [
-        {
-            "radius": 0.5,
-            "position": {
-                "x": -7.25,
-                "z": 0.0
-            }
-        }
-    ],
-    "itemSpawn": [
-        {
-            "radius": 0.5,
-            "position": {
-                "x": 0.0,
-                "z": 0.0
-            }
-        },
-        {
-            "radius": 0.5,
-            "position": {
-                "x": 0.0,
-                "z": 2.75
-            }
-        },
-        {
-            "radius": 0.5,
-            "position": {
-                "x": 0.0,
-                "z": -2.5
-            }
-        }
-    ],
     "freeForAllSpawn": [
         {
             "radius": 0.5,

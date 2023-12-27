@@ -44,11 +44,8 @@ module.exports = class LobbyBase {
         let serverItems = lobby.serverItems;
         let connections = lobby.connections;
 
-        //Set Position
         item.position = location;
-        //Set item into the array
         serverItems.push(item);
-        //Tell everyone in the room
         connections.forEach(connection => {
             connection.socket.emit('serverSpawn', {
                 id: item.id,
@@ -62,9 +59,7 @@ module.exports = class LobbyBase {
         let lobby = this;
         let connections = lobby.connections;
 
-        //Remove item from array
         lobby.deleteServerItem(item);
-        //Tell everyone in the room
         connections.forEach(connection => {
             connection.socket.emit('serverUnspawn', {
                 id: item.id
@@ -77,7 +72,6 @@ module.exports = class LobbyBase {
         let serverItems = lobby.serverItems;
         let index = serverItems.indexOf(item);
 
-        //Remove our item out the array
         if (index > -1) {
             serverItems.splice(index, 1);
         }

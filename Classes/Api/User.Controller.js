@@ -2,6 +2,7 @@ const Database = require('../../Config/Database');
 const { sign } = require("jsonwebtoken");
 
 const db = new Database();
+// Ai dùng phần này nên chia ra ResfulAPI: users, leaderboard, message... theo controller router
 
 // Lấy dữ liệu mẫu từ cơ sở dữ liệu
 const getSampleData = (req, res) => {
@@ -26,22 +27,6 @@ const createAccount = (req, res) => {
   });
 };
 
-// Đăng nhập
-// const signIn = (req, res) => {
-//   const { username, password } = req.body;
-//   db.SignIn(username, password, result => {
-//     if (result.reason == "Success.") {
-//       const jsontoken = sign({ username }, "NguyenHuuTuan", {
-//         expiresIn: "1h"
-//       });
-//       res.json({
-//         reason: "Success.",
-//         message: "Login successfully",
-//         token: jsontoken
-//       });
-//     } else res.json(result);
-//   });
-// };
 const signIn = (req, res) => {
   const { username, password } = req.body;
   if (username !== 'Adminstrator') {
@@ -53,7 +38,7 @@ const signIn = (req, res) => {
   }
   db.SignIn(username, password, result => {
     if (result.reason == "Success.") {
-      const jsontoken = sign({ username }, "NguyenHuuTuan", {
+      const jsontoken = sign({ username }, process.env.KEYAUTH, {
         expiresIn: "1h"
       });
       res.json({
@@ -76,7 +61,7 @@ const deleteUser = (req, res) => {
 
 const getLeaderboard = (req, res) => {
   const { top, game_name } = req.params;
-  const topInt = parseInt(top, 10); // Chuyển đổi top thành số nguyên
+  const topInt = parseInt(top, 10);
   
   if (isNaN(topInt) || topInt <= 0) {
     // Xử lý khi top không hợp lệ

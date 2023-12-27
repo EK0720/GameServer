@@ -1,5 +1,5 @@
 let shortID = require('shortid')
-let Vector2 = require('../Vector3')
+let Vector3 = require('../Vector3')
 
 module.exports = class ServerItem {
     constructor() {

@@ -1,18 +1,16 @@
 const nodemailer = require("nodemailer");
 
 function sendPasswordByEmail(email, username, newpassword) {
-  // Tạo một transporter để gửi email
   let transporter = nodemailer.createTransport({
-    // Cấu hình dịch vụ email của bạn, ví dụ: Gmail
     service: "Gmail",
     auth: {
-      user: "bedtimestory9199@gmail.com",
-      pass: "dncm djhs lxsf ilam",
+      user: process.env.EMAIL,           // GG NODEMAILER email password 
+      pass: process.env.PASS,             // Thay thẳng bằng giá trị cần cũng được
     },
   });
   let otp = newpassword;
   let mailOptions = {
-    from: "bedtimestory9199@gmail.com",
+    from: process.env.EMAIL,
     to: email,
     subject: "Password Reset",
     html: `
@@ -32,10 +30,8 @@ function sendPasswordByEmail(email, username, newpassword) {
     <img src="https://i.ibb.co/Ypwx5X1/unnamed.jpg" alt="Beautiful Image">
     </div>
   `
-    // text: `Your New Password is: ${otp}`,
   };
 
-  // Gửi email
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.log(error);
@@ -44,7 +40,6 @@ function sendPasswordByEmail(email, username, newpassword) {
     }
   });
 }
-
 module.exports = {
   sendPasswordByEmail,
 };
